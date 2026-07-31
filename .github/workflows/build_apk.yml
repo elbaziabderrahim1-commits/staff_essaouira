@@ -28,6 +28,9 @@ jobs:
           flutter-version: '3.x'
           channel: 'stable'
 
+      - name: Recreate missing project platforms
+        run: flutter create . --platforms=android
+
       - name: Install Dependencies
         run: flutter pub get
 
