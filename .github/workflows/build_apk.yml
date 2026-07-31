@@ -1,0 +1,47 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Re-create Flutter Project Structure
+        run: |
+          mkdir temp_app
+          mv lib pubspec.yaml temp_app/ || true
+          flutter create . --org com.example --project-name staff_essaouira
+          if [ -d "temp_app/lib" ]; then cp -r temp_app/lib/* lib/; fi
+          if [ -f "temp_app/pubspec.yaml" ]; then cp temp_app/pubspec.yaml pubspec.yaml; fi
+          rm -rf temp_app
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: staff-manager-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
